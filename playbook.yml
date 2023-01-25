@@ -1,0 +1,25 @@
+---
+- hosts: all
+  become: true
+  vars:
+    - dir_download: /home/pi/download
+    - ver_snapcast: "0.26.0"
+    - file_snapcast: snapserver_{{ ver_snapcast }}-1_armhf.deb
+    - url_snapcast: https://github.com/badaix/snapcast/releases/download/v{{ ver_snapcast }}/{{ file_snapcast }}
+
+  tasks:
+    - name: Create a download folder
+      ansible.builtin.file:
+        path: "{{ dir_download }}"
+        state: directory
+        mode: "0755"
+
+    - name: Download snapcast server
+      become: true
+      get_url:
+        url: "{{ url_snapcast }}"
+        dest: "{{ dir_download }}"
+
+    - name: Install snapcast server
+      apt:
+        deb: "{{dir_download}}/{{file_snapcast}}"
