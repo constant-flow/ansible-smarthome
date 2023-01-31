@@ -24,6 +24,11 @@
           - libturbojpeg0-dev
           - tzdata
 
+    - name: Install virtualenv via pip
+      ansible.builtin.pip:
+        name: virtualenv
+        executable: pip3
+
     - name: Create homeassistant user
       ansible.builtin.user:
         name: homeassistant
