@@ -20,6 +20,11 @@
         url: "{{ url_snapcast }}"
         dest: "{{ dir_download }}"
 
+    - name: Install playback server
+      ansible.builtin.apt:
+        pkg:
+          - mpv
+
     - name: Install snapcast server
       apt:
         deb: "{{dir_download}}/{{file_snapcast}}"
