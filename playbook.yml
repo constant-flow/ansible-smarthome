@@ -23,3 +23,7 @@
     - name: Install snapcast server
       apt:
         deb: "{{dir_download}}/{{file_snapcast}}"
+
+    # - name: setup bluetooth - sap-plugin
+    #   shell: |
+    #     log () { printf "\e[93m%b\e[0m" "\n=== Raspberry-Pack: $1 ===\n"; }

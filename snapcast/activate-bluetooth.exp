@@ -1,0 +1,10 @@
+#!/usr/bin/expect
+set timeout 5
+
+spawn sudo bluetoothctl
+expect "Agent registered"
+send "power on\n"
+expect "Changing power on succeeded"
+send "discoverable on\n"
+expect "Changing discoverable on succeeded"
+send "exit\n"
