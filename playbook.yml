@@ -24,6 +24,14 @@
       apt:
         deb: "{{dir_download}}/{{file_snapcast}}"
 
+    - name: Configure snapcast server for custom sources
+      ansible.builtin.copy:
+        src: ./configs/snapserver.conf
+        dest: /etc/snapserver.conf
+        owner: root
+        group: root
+        mode: "0644"
+
     # - name: setup bluetooth - sap-plugin
     #   shell: |
     #     log () { printf "\e[93m%b\e[0m" "\n=== Raspberry-Pack: $1 ===\n"; }
