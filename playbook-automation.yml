@@ -1,5 +1,6 @@
 ---
-- hosts: all
+- hosts: localhost
+  name: Install all home automation features
   become: true
   vars:
     - dir_download: /home/pi/download
@@ -23,6 +24,7 @@
           - libtiff5
           - libturbojpeg0-dev
           - tzdata
+          - cargo
 
     - name: Install virtualenv via pip
       ansible.builtin.pip:
