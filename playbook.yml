@@ -1,47 +1,12 @@
 ---
 - hosts: all
   become: true
-  vars:
-    - dir_download: /home/pi/download
-    - ver_snapcast: "0.26.0"
-    - file_snapcast: snapserver_{{ ver_snapcast }}-1_armhf.deb
-    - url_snapcast: https://github.com/badaix/snapcast/releases/download/v{{ ver_snapcast }}/{{ file_snapcast }}
-
   tasks:
-    - name: Create a download folder
-      ansible.builtin.file:
-        path: "{{ dir_download }}"
-        state: directory
-        mode: "0755"
+    - ansible.builtin.debug:
+        msg: Setup smart home via ansible playbooks
 
-    - name: Download snapcast server
-      become: true
-      get_url:
-        url: "{{ url_snapcast }}"
-        dest: "{{ dir_download }}"
+- name: Audio Setup
+  ansible.builtin.import_playbook: playbook-audio.yml
 
-    - name: Install playback server
-      ansible.builtin.apt:
-        pkg:
-          - mpv
-
-    - name: Install snapcast server
-      apt:
-        deb: "{{dir_download}}/{{file_snapcast}}"
-
-    - name: Configure snapcast server for custom sources
-      ansible.builtin.copy:
-        src: ./configs/snapserver.conf
-        dest: /etc/snapserver.conf
-        owner: root
-        group: root
-        mode: "0644"
-
-    - name: Restart snapserver to load configuration
-      ansible.builtin.service:
-        name: snapserver
-        state: restarted
-
-    # - name: setup bluetooth - sap-plugin
-    #   shell: |
-    #     log () { printf "\e[93m%b\e[0m" "\n=== Raspberry-Pack: $1 ===\n"; }
+- name: Automation
+  ansible.builtin.import_playbook: playbook-automation.yml

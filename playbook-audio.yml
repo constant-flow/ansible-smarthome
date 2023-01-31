@@ -1,0 +1,126 @@
+---
+- hosts: all
+  become: true
+  vars:
+    - dir_download: /home/pi/download
+    - ver_snapcast: "0.26.0"
+    - file_snapcast: snapserver_{{ ver_snapcast }}-1_armhf.deb
+    - url_snapcast: https://github.com/badaix/snapcast/releases/download/v{{ ver_snapcast }}/{{ file_snapcast }}
+
+  tasks:
+    - name: Create a download folder
+      ansible.builtin.file:
+        path: "{{ dir_download }}"
+        state: directory
+        mode: "0755"
+
+    - name: Download snapcast server
+      become: true
+      ansible.builtin.get_url:
+        url: "{{ url_snapcast }}"
+        dest: "{{ dir_download }}"
+        owner: root
+        group: root
+        mode: "0644"
+
+    - name: Install playback server
+      ansible.builtin.apt:
+        pkg:
+          - mpv
+
+    - name: Install snapcast server
+      ansible.builtin.apt:
+        deb: "{{ dir_download }}/{{ file_snapcast }}"
+
+    - name: Configure snapcast server for custom sources
+      ansible.builtin.copy:
+        src: ./configs/snapserver.conf
+        dest: /etc/snapserver.conf
+        owner: root
+        group: root
+        mode: "0644"
+
+    - name: Restart snapserver to load configuration
+      ansible.builtin.service:
+        name: snapserver
+        state: restarted
+
+    - name: Setup bluetooth - fix sap-plugin
+      ansible.builtin.replace:
+        path: /lib/systemd/system/bluetooth.service
+        regexp: "ExecStart=\/usr\/libexec\/bluetooth\/bluetoothd"
+        replace: "ExecStart=/usr/lib/bluetooth/bluetoothd --noplugin=sap"
+        backup: true
+
+    - name: Set bluetooth discoverable
+      ansible.builtin.replace:
+        path: /etc/bluetooth/main.conf
+        regexp: "#DiscoverableTimeout = 0"
+        replace: "DiscoverableTimeout = 0"
+        backup: true
+
+    - name: Add a2dp capabilities
+      ansible.builtin.replace:
+        path: /lib/systemd/system/bluealsa.service
+        regexp: "ExecStart=/usr/bin/bluealsa"
+        replace: "ExecStart=/usr/bin/bluealsa -p a2dp-source -p a2dp-sink"
+        backup: true
+
+    - name: Install expect to enable bluetooth automatically
+      ansible.builtin.apt:
+        pkg:
+          - expect
+
+    - name: Activate bluetooth
+      ansible.builtin.expect:
+        command: bluetoothctl
+        timeout: 5
+        responses:
+          - (?i)Agent registered: power on
+          - (?i)Changing power on succeeded: discoverable on
+          - (?i)Changing discoverable on succeeded: exit
+
+    - name: Create A2DP agent script
+      ansible.builtin.copy:
+        src: ./snapcast/a2dp-agent
+        dest: /usr/local/bin/a2dp-agent
+        owner: root
+        group: root
+        mode: "0755"
+
+    - name: Create sound profile to play audio to snapfifo pipe
+      ansible.builtin.copy:
+        src: ./snapcast/.asoundrc
+        dest: /home/pi/.asoundrc
+        owner: root
+        group: root
+        mode: "0644"
+
+    - name: Create service for bluetooth agent
+      ansible.builtin.copy:
+        src: ./snapcast/bt-agent-a2dp.service
+        dest: /etc/systemd/system/bt-agent-a2dp.service
+        owner: root
+        group: root
+        mode: "0644"
+
+    - name: Create service for bluetooth A2DP sink
+      ansible.builtin.copy:
+        src: ./snapcast/a2dp-playback.service
+        dest: /etc/systemd/system/a2dp-playback.service
+        owner: root
+        group: root
+        mode: "0644"
+
+    - name: Enable bluetooth agent
+      ansible.builtin.service:
+        name: bt-agent-a2dp.service
+        state: started
+
+    - name: Enable bluetooth A2DP sink / playback
+      ansible.builtin.service:
+        name: bt-agent-a2dp.service
+        state: started
+
+    - name: asoundrc
+      playbo

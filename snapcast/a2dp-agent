@@ -46,7 +46,7 @@ class Agent(dbus.service.Object):
                          in_signature="o", out_signature="s")
     def RequestPinCode(self, device):
         print("RequestPinCode (%s)" % (device))
-        return "0000"
+        return "1337"
 
     @dbus.service.method(AGENT_INTERFACE,
                          in_signature="o", out_signature="u")
