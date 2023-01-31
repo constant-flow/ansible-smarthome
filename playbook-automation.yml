@@ -58,10 +58,12 @@
           - homeassistant
         virtualenv: /srv/homeassistant
         virtualenv_python: python3
+      become_user: homeassistant
 
     - name: Start homeassistant
       ansible.builtin.script:
         cmd: hass
+      become_user: homeassistant
 
     - name: Download of homeassistant files done
       ansible.builtin.debug:
